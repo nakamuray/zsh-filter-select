@@ -1,0 +1,34 @@
+autoload -U filter-select
+zmodload zsh/parameter
+
+function perldoc-filter-select() {
+    local reply='' code_wanted
+    local -a __mods words
+
+    # XXX: override _wanted to capture module list _perl_modules generates
+    code_wanted="${functions[_wanted]}"
+    function _wanted() {
+        __mods=("${(P@)${@[7]}}")
+    }
+
+    # required by _perl_modules
+    words=(perldoc)
+
+    _perl_modules
+
+    filter-select -- "${(@)__mods}"
+    ret=$?
+
+    # restore original function
+    eval "function _wanted() { $code_wanted }"
+
+    if (( ret == 0 )); then
+        # to allow perldoc to access tty,
+        # use zle -U to invoke perldoc after returned from this function
+        zle -U " perldoc '${reply}'"$'\n'
+    elif [[ -n "${reply}" ]]; then
+        zle -U " vim -R $(perldoc -lm "${reply}")"$'\n'
+    fi
+}
+
+perldoc-filter-select "$@"
