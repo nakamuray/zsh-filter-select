@@ -2,7 +2,7 @@ autoload -U filter-select
 zmodload zsh/parameter
 
 function perldoc-filter-select() {
-    local reply='' code_wanted
+    local reply='' code_wanted ret
     local -a __mods words
 
     # XXX: override _wanted to capture module list _perl_modules generates
@@ -22,7 +22,7 @@ function perldoc-filter-select() {
     # restore original function
     eval "function _wanted() { $code_wanted }"
 
-    if (( ret == 0 )); then
+    if [[ $ret == 0 ]]; then
         # to allow perldoc to access tty,
         # use zle -U to invoke perldoc after returned from this function
         zle -U " perldoc '${reply}'"$'\n'
